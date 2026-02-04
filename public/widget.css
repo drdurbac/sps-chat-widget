@@ -1,0 +1,128 @@
+#stoma-chat-launcher {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  background: #25d366;
+  color: #fff;
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 99999;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+#stoma-chat-launcher .stoma-chat-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: #e53935;
+  color: #fff;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  display: none;
+}
+
+#stoma-chat-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 80px;
+  width: 360px;
+  max-height: 560px;
+  background: #efeae2;
+  border: 1px solid #d9d7d3;
+  border-radius: 16px;
+  z-index: 99999;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+#stoma-chat-panel .chat-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #d6d2cc;
+  font-weight: 600;
+  background: #075e54;
+  color: #fff;
+}
+
+#stoma-chat-panel .chat-body {
+  padding: 12px 12px 16px;
+  overflow: auto;
+  height: 340px;
+  background: #efeae2;
+  background-image: radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+#stoma-chat-panel .chat-row {
+  margin-bottom: 10px;
+}
+
+#stoma-chat-panel .chat-row .meta {
+  font-size: 10px;
+  color: #6b6b6b;
+  margin-bottom: 3px;
+}
+
+#stoma-chat-panel .chat-bubble {
+  display: inline-block;
+  padding: 8px 10px;
+  border-radius: 14px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.35;
+  font-size: 13px;
+}
+
+#stoma-chat-panel .chat-row.left {
+  text-align: left;
+}
+
+#stoma-chat-panel .chat-row.left .chat-bubble {
+  background: #fff;
+  color: #111;
+  border-top-left-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+}
+
+#stoma-chat-panel .chat-row.right {
+  text-align: right;
+}
+
+#stoma-chat-panel .chat-row.right .chat-bubble {
+  background: #dcf8c6;
+  color: #111;
+  border-top-right-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+}
+
+#stoma-chat-panel .chat-footer {
+  padding: 10px 10px;
+  border-top: 1px solid #d6d2cc;
+  display: flex;
+  gap: 8px;
+  background: #f0f0f0;
+}
+
+#stoma-chat-panel input[type="text"] {
+  flex: 1;
+  border: 1px solid #d0d0d0;
+  border-radius: 18px;
+  padding: 8px 12px;
+  background: #fff;
+}
+
+#stoma-chat-panel button {
+  background: #25d366;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 18px;
+}
