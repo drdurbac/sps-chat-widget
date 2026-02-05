@@ -76,7 +76,9 @@
         panelOpen = true;
         mentionCount = 0;
         updateBadge();
-        loadRoomsAndInit();
+        loadRoomsAndInit().then(function() {
+          requestAnimationFrame(scrollChatToBottom);
+        });
         startPolling();
       } else {
         panelOpen = false;
@@ -96,6 +98,12 @@
 
   function fetchJson(url, opts) {
     return fetch(url, opts).then(function(r){ return r.json(); });
+  }
+
+  function scrollChatToBottom() {
+    var body = document.getElementById('stoma-chat-body');
+    if (!body) return;
+    body.scrollTop = body.scrollHeight;
   }
 
   function loadRoomsAndInit() {
@@ -232,7 +240,9 @@
       '  <div class="chat-time">' + escapeHtml(dt.time) + '</div>' +
       '</div>';
     body.appendChild(row);
-    body.scrollTop = body.scrollHeight;
+    if (panelOpen) {
+      scrollChatToBottom();
+    }
     if (!opts.silentMentions) {
       handleMention(msg);
     }
