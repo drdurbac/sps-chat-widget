@@ -7,7 +7,7 @@
   var basePath = (config.basePath || '/chat').replace(/\/$/, '');
   var apiBase = basePath;
   var username = config.username || '';
-  var widgetVersion = config.widgetVersion || 'v7cac3a5';
+  var widgetVersion = config.widgetVersion || 'v1.5';
 
   function $(sel) { return document.querySelector(sel); }
   function escapeHtml(str) {
