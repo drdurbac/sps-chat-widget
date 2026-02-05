@@ -127,7 +127,7 @@
   border-radius: 18px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   #stoma-chat-launcher {
     bottom: 140px !important;
   }
