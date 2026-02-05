@@ -74,7 +74,7 @@
       panel.style.display = (panel.style.display === 'flex' ? 'none' : 'flex');
       if (panel.style.display === 'flex') {
         panelOpen = true;
-        mentionCount = 0;
+        unreadCount = 0;
         updateBadge();
         loadRoomsAndInit().then(function() {
           requestAnimationFrame(scrollChatToBottom);
@@ -90,7 +90,7 @@
   var lastId = 0;
   var socket = null;
   var pollTimer = null;
-  var mentionCount = 0;
+  var unreadCount = 0;
   var panelOpen = false;
   var lastRenderedDateKey = null;
   var mentionAliases = [];
@@ -111,7 +111,7 @@
       if (!resp.rooms || !resp.rooms.length) return;
       roomId = resp.rooms[0].id;
       initSocket();
-      return loadMessages({ silentMentions: !initialLoadDone }).then(function() {
+      return loadMessages({ silentCounters: !initialLoadDone }).then(function() {
         initialLoadDone = true;
       });
     });
@@ -243,9 +243,7 @@
     if (panelOpen) {
       scrollChatToBottom();
     }
-    if (!opts.silentMentions) {
-      handleMention(msg);
-    }
+    processIncomingIndicators(msg, opts, isMine);
   }
 
   function loadMessages(opts) {
@@ -258,14 +256,18 @@
       });
   }
 
-  function handleMention(msg) {
-    var text = String(msg.message || '');
-    if (String(msg.username || '').toLowerCase() === String(username || '').toLowerCase()) return;
-    if (!isMentionForCurrentUser(text)) return;
-    if (!panelOpen) {
-      mentionCount += 1;
+  function processIncomingIndicators(msg, opts, isMine) {
+    if (!opts.silentCounters && !panelOpen && !isMine) {
+      unreadCount += 1;
       updateBadge();
     }
+    handleMention(msg, isMine);
+  }
+
+  function handleMention(msg, isMine) {
+    var text = String(msg.message || '');
+    if (isMine) return;
+    if (!isMentionForCurrentUser(text)) return;
     notifyUser(msg);
   }
 
@@ -273,9 +275,9 @@
     var badge = document.getElementById('stoma-chat-badge');
     var launcher = document.getElementById('stoma-chat-launcher');
     if (!badge) return;
-    if (mentionCount > 0) {
+    if (unreadCount > 0) {
       badge.style.display = 'inline-block';
-      badge.textContent = String(mentionCount);
+      badge.textContent = String(unreadCount);
       if (launcher) launcher.classList.add('has-mention');
     } else {
       badge.style.display = 'none';
