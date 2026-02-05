@@ -51,7 +51,7 @@
     }
     var launcher = document.createElement('div');
     launcher.id = 'stoma-chat-launcher';
-    launcher.textContent = 'Chat';
+    launcher.textContent = 'Chat DCD';
     var badge = document.createElement('span');
     badge.className = 'stoma-chat-badge';
     badge.id = 'stoma-chat-badge';
