@@ -7,6 +7,7 @@
   var basePath = (config.basePath || '/chat').replace(/\/$/, '');
   var apiBase = basePath;
   var username = config.username || '';
+  var widgetVersion = config.widgetVersion || 'v7cac3a5';
 
   function $(sel) { return document.querySelector(sel); }
   function escapeHtml(str) {
@@ -60,7 +61,7 @@
     var panel = document.createElement('div');
     panel.id = 'stoma-chat-panel';
     panel.innerHTML = '' +
-      '<div class="chat-header">Chat</div>' +
+      '<div class="chat-header">Chat <span class="chat-version">' + escapeHtml(widgetVersion) + '</span></div>' +
       '<div class="chat-body" id="stoma-chat-body"></div>' +
       '<div class="chat-footer">' +
       '  <input type="text" id="stoma-chat-input" placeholder="Scrie un mesaj...">' +
