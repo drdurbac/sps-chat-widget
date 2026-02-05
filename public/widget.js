@@ -336,6 +336,22 @@
     });
   }
 
+  function bindOutsideClose() {
+    function onOutsideInteraction(e) {
+      var panel = document.getElementById('stoma-chat-panel');
+      var launcher = document.getElementById('stoma-chat-launcher');
+      if (!panel || !launcher) return;
+      if (panel.style.display !== 'flex') return;
+      var target = e.target;
+      if (panel.contains(target) || launcher.contains(target)) return;
+      panel.style.display = 'none';
+      panelOpen = false;
+    }
+
+    document.addEventListener('click', onOutsideInteraction);
+    document.addEventListener('touchstart', onOutsideInteraction);
+  }
+
   function init() {
     username = config.username || detectUsername();
     mentionAliases = buildMentionAliases(username);
@@ -344,6 +360,7 @@
     loadRoomsAndInit();
     startPolling();
     bindSend();
+    bindOutsideClose();
   }
 
   if (document.readyState === 'loading') {
