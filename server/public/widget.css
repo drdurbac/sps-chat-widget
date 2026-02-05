@@ -71,6 +71,26 @@
   margin-bottom: 3px;
 }
 
+#stoma-chat-panel .chat-day-divider {
+  text-align: center;
+  margin: 10px 0 12px;
+}
+
+#stoma-chat-panel .chat-day-divider span {
+  display: inline-block;
+  font-size: 11px;
+  color: #54656f;
+  background: #d9f0ff;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+#stoma-chat-panel .chat-username {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2c34;
+}
+
 #stoma-chat-panel .chat-bubble {
   display: inline-block;
   padding: 8px 10px;
@@ -79,6 +99,17 @@
   word-wrap: break-word;
   line-height: 1.35;
   font-size: 13px;
+}
+
+#stoma-chat-panel .chat-text {
+  white-space: pre-wrap;
+}
+
+#stoma-chat-panel .chat-time {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #667781;
+  text-align: right;
 }
 
 #stoma-chat-panel .chat-row.left {
@@ -126,7 +157,6 @@
   padding: 8px 12px;
   border-radius: 18px;
 }
-
 @media (max-width: 768px) {
   #stoma-chat-launcher {
     bottom: 140px !important;

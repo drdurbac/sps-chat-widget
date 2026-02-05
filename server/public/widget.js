@@ -91,6 +91,7 @@
   var pollTimer = null;
   var unreadCount = 0;
   var panelOpen = false;
+  var lastRenderedDateKey = null;
 
   function fetchJson(url, opts) {
     return fetch(url, opts).then(function(r){ return r.json(); });
@@ -120,6 +121,52 @@
     document.body.appendChild(s);
   }
 
+  function toDateKey(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function parseCreatedAt(createdAt) {
+    var s = String(createdAt || '').trim();
+    var m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/);
+    if (m) {
+      return {
+        dateKey: m[1],
+        time: m[2] + ':' + m[3]
+      };
+    }
+    var d = new Date(s.replace(' ', 'T'));
+    if (!isNaN(d.getTime())) {
+      return {
+        dateKey: toDateKey(d),
+        time: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+      };
+    }
+    return { dateKey: '', time: '' };
+  }
+
+  function formatDayLabel(dateKey) {
+    if (!dateKey) return '';
+    var now = new Date();
+    var todayKey = toDateKey(now);
+    var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    var yesterdayKey = toDateKey(yesterday);
+    if (dateKey === todayKey) return 'Astazi';
+    if (dateKey === yesterdayKey) return 'Ieri';
+    return dateKey.slice(8, 10) + '.' + dateKey.slice(5, 7) + '.' + dateKey.slice(0, 4);
+  }
+
+  function appendDayDivider(body, dateKey) {
+    if (!dateKey || dateKey === lastRenderedDateKey) return;
+    var divider = document.createElement('div');
+    divider.className = 'chat-day-divider';
+    divider.innerHTML = '<span>' + escapeHtml(formatDayLabel(dateKey)) + '</span>';
+    body.appendChild(divider);
+    lastRenderedDateKey = dateKey;
+  }
+
   function appendMessage(msg) {
     var body = $('#stoma-chat-body');
     if (!body) return;
@@ -127,12 +174,17 @@
       return;
     }
     lastId = Math.max(lastId, msg.id || 0);
+    var dt = parseCreatedAt(msg.created_at);
+    appendDayDivider(body, dt.dateKey);
     var row = document.createElement('div');
     var isMine = (String(msg.username || '').toLowerCase() === String(username || '').toLowerCase());
     row.className = 'chat-row ' + (isMine ? 'right' : 'left');
     row.innerHTML =
-      '<div class="meta">' + escapeHtml(msg.username) + ' · ' + escapeHtml(msg.created_at) + '</div>' +
-      '<div class="chat-bubble">' + escapeHtml(msg.message) + '</div>';
+      '<div class="meta"><span class="chat-username">' + escapeHtml(msg.username || 'user') + '</span></div>' +
+      '<div class="chat-bubble">' +
+      '  <div class="chat-text">' + escapeHtml(msg.message) + '</div>' +
+      '  <div class="chat-time">' + escapeHtml(dt.time) + '</div>' +
+      '</div>';
     body.appendChild(row);
     body.scrollTop = body.scrollHeight;
     handleMention(msg);
