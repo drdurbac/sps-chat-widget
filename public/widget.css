@@ -170,6 +170,18 @@
 }
 @media (max-width: 768px) {
   #stoma-chat-launcher {
-    bottom: 140px !important;
+    bottom: 80px !important;
+  }
+
+  #stoma-chat-panel {
+    bottom: 160px !important;
+  }
+
+  #stoma-chat-panel .chat-username {
+    font-size: 14px;
+  }
+
+  #stoma-chat-panel .chat-bubble {
+    font-size: 16px;
   }
 }
