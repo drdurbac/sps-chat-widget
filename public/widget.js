@@ -74,13 +74,12 @@
       panel.style.display = (panel.style.display === 'flex' ? 'none' : 'flex');
       if (panel.style.display === 'flex') {
         panelOpen = true;
-        unreadCount = 0;
+        mentionCount = 0;
         updateBadge();
         loadRoomsAndInit();
         startPolling();
       } else {
         panelOpen = false;
-        stopPolling();
       }
     });
   }
@@ -89,9 +88,11 @@
   var lastId = 0;
   var socket = null;
   var pollTimer = null;
-  var unreadCount = 0;
+  var mentionCount = 0;
   var panelOpen = false;
   var lastRenderedDateKey = null;
+  var mentionAliases = [];
+  var initialLoadDone = false;
 
   function fetchJson(url, opts) {
     return fetch(url, opts).then(function(r){ return r.json(); });
@@ -102,7 +103,9 @@
       if (!resp.rooms || !resp.rooms.length) return;
       roomId = resp.rooms[0].id;
       initSocket();
-      loadMessages();
+      return loadMessages({ silentMentions: !initialLoadDone }).then(function() {
+        initialLoadDone = true;
+      });
     });
   }
 
@@ -167,7 +170,50 @@
     lastRenderedDateKey = dateKey;
   }
 
-  function appendMessage(msg) {
+  function extractMentionTokens(text) {
+    var tokens = [];
+    var re = /(^|[\s.,;:!?(){}\[\]])@([a-z0-9._-]+)/gi;
+    var m;
+    while ((m = re.exec(String(text || ''))) !== null) {
+      tokens.push(String(m[2] || '').toLowerCase());
+    }
+    return tokens;
+  }
+
+  function buildMentionAliases(rawUsername) {
+    var raw = String(rawUsername || '').trim().toLowerCase();
+    if (!raw) return [];
+    var set = {};
+    function add(v) {
+      var x = String(v || '').trim().toLowerCase();
+      if (x) set[x] = true;
+    }
+    add(raw.replace(/^@+/, ''));
+    add(raw.split(/\s+/)[0]);
+    add(raw.replace(/\s+/g, ''));
+    add(raw.replace(/[^a-z0-9._-]/g, ''));
+    Object.keys(set).forEach(function(k) {
+      if (k.indexOf('.') !== -1) add(k.split('.')[0]);
+      if (k.indexOf('_') !== -1) add(k.split('_')[0]);
+      if (k.indexOf('-') !== -1) add(k.split('-')[0]);
+    });
+    if (Array.isArray(config.mentionAliases)) {
+      config.mentionAliases.forEach(add);
+    }
+    return Object.keys(set);
+  }
+
+  function isMentionForCurrentUser(text) {
+    var tokens = extractMentionTokens(text);
+    if (!tokens.length || !mentionAliases.length) return false;
+    for (var i = 0; i < tokens.length; i++) {
+      if (mentionAliases.indexOf(tokens[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  function appendMessage(msg, opts) {
+    opts = opts || {};
     var body = $('#stoma-chat-body');
     if (!body) return;
     if (msg.id && msg.id <= lastId) {
@@ -187,24 +233,27 @@
       '</div>';
     body.appendChild(row);
     body.scrollTop = body.scrollHeight;
-    handleMention(msg);
+    if (!opts.silentMentions) {
+      handleMention(msg);
+    }
   }
 
-  function loadMessages() {
+  function loadMessages(opts) {
     if (!roomId) return;
-    fetchJson(apiBase + '/messages?room_id=' + roomId + '&after_id=' + lastId)
+    return fetchJson(apiBase + '/messages?room_id=' + roomId + '&after_id=' + lastId)
       .then(function(resp) {
-        (resp.messages || []).forEach(appendMessage);
+        (resp.messages || []).forEach(function(m) {
+          appendMessage(m, opts);
+        });
       });
   }
 
   function handleMention(msg) {
     var text = String(msg.message || '');
-    var mention = '@' + String(username || '').toLowerCase();
-    if (!mention || mention === '@') return;
-    if (text.toLowerCase().indexOf(mention) === -1) return;
+    if (String(msg.username || '').toLowerCase() === String(username || '').toLowerCase()) return;
+    if (!isMentionForCurrentUser(text)) return;
     if (!panelOpen) {
-      unreadCount += 1;
+      mentionCount += 1;
       updateBadge();
     }
     notifyUser(msg);
@@ -212,13 +261,16 @@
 
   function updateBadge() {
     var badge = document.getElementById('stoma-chat-badge');
+    var launcher = document.getElementById('stoma-chat-launcher');
     if (!badge) return;
-    if (unreadCount > 0) {
+    if (mentionCount > 0) {
       badge.style.display = 'inline-block';
-      badge.textContent = String(unreadCount);
+      badge.textContent = String(mentionCount);
+      if (launcher) launcher.classList.add('has-mention');
     } else {
       badge.style.display = 'none';
       badge.textContent = '';
+      if (launcher) launcher.classList.remove('has-mention');
     }
   }
 
@@ -286,8 +338,11 @@
 
   function init() {
     username = config.username || detectUsername();
+    mentionAliases = buildMentionAliases(username);
     injectCss();
     injectUi();
+    loadRoomsAndInit();
+    startPolling();
     bindSend();
   }
 

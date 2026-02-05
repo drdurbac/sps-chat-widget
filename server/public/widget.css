@@ -12,6 +12,17 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
+#stoma-chat-launcher.has-mention {
+  animation: stoma-chat-pulse 1.4s infinite;
+  box-shadow: 0 0 0 0 rgba(229,57,53,0.5);
+}
+
+@keyframes stoma-chat-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(229,57,53,0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(229,57,53,0); }
+  100% { box-shadow: 0 0 0 0 rgba(229,57,53,0); }
+}
+
 #stoma-chat-launcher .stoma-chat-badge {
   position: absolute;
   top: -6px;
