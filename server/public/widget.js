@@ -232,39 +232,10 @@
     });
   }
 
-  function injectMenuLink() {
-    if (document.getElementById('stoma-chat-menu')) {
-      return;
-    }
-    var menu = document.querySelector('.nav.navbar-nav');
-    if (!menu) return;
-    var li = document.createElement('li');
-    li.innerHTML = '<a href="#" id="stoma-chat-menu"><i class="fa fa-comments"></i> <span>Chat</span></a>';
-    menu.appendChild(li);
-    li.querySelector('a').addEventListener('click', function(e) {
-      e.preventDefault();
-      var panel = document.getElementById('stoma-chat-panel');
-      if (panel) {
-        panel.style.display = (panel.style.display === 'flex' ? 'none' : 'flex');
-        if (panel.style.display === 'flex') {
-          panelOpen = true;
-          unreadCount = 0;
-          updateBadge();
-          loadRoomsAndInit();
-          startPolling();
-        } else {
-          panelOpen = false;
-          stopPolling();
-        }
-      }
-    });
-  }
-
   function init() {
     username = config.username || detectUsername();
     injectCss();
     injectUi();
-    injectMenuLink();
     bindSend();
   }
 
