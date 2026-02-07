@@ -5,6 +5,7 @@
   window.__stomaChatWidgetLoaded = true;
   var config = window.ChatWidgetConfig || {};
   var basePath = (config.basePath || '/chat').replace(/\/$/, '');
+  var socketIoPath = (config.socketIoPath || (basePath + '/socket.io')).replace(/\/$/, '');
   var apiBase = basePath;
   var username = config.username || '';
   var widgetVersion = config.widgetVersion || 'v1.5';
@@ -121,9 +122,10 @@
   function initSocket() {
     if (socket) return;
     var s = document.createElement('script');
-    s.src = basePath + '/socket.io/socket.io.js';
+    s.src = socketIoPath + '/socket.io.js';
     s.onload = function() {
-      socket = window.io(basePath);
+      // Always use root namespace and explicit path so chat works behind subpath proxies (e.g. /chat).
+      socket = window.io('/', { path: socketIoPath });
       socket.emit('chat:join', String(roomId));
       socket.on('chat:new', function(msg) {
         if (String(msg.room_id) !== String(roomId)) return;

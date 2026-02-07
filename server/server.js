@@ -7,6 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 
 const PORT = process.env.PORT || 3000;
 const BASE_PATH = (process.env.BASE_PATH || '').replace(/\/$/, '');
+const SOCKET_IO_PATH = `${BASE_PATH || ''}/socket.io` || '/socket.io';
 const DB_PATH = process.env.CHAT_DB_PATH || path.join(__dirname, 'chat.db');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 
 const server = http.createServer(app);
 const io = new Server(server, {
+  path: SOCKET_IO_PATH,
   cors: {
     origin: process.env.CHAT_CORS_ORIGIN || '*',
     methods: ['GET', 'POST']
@@ -148,5 +150,5 @@ io.on('connection', (socket) => {
 initDb();
 
 server.listen(PORT, () => {
-  console.log(`Chat server listening on ${PORT} (base path: ${BASE_PATH || '/'})`);
+  console.log(`Chat server listening on ${PORT} (base path: ${BASE_PATH || '/'}, socket path: ${SOCKET_IO_PATH})`);
 });
