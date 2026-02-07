@@ -5,10 +5,10 @@
   window.__stomaChatWidgetLoaded = true;
   var config = window.ChatWidgetConfig || {};
   var basePath = (config.basePath || '/chat').replace(/\/$/, '');
-  var socketIoPath = (config.socketIoPath || (basePath + '/socket.io')).replace(/\/$/, '');
   var apiBase = basePath;
   var username = config.username || '';
   var widgetVersion = config.widgetVersion || 'v1.5';
+  var socketIoPaths = buildSocketIoPaths();
 
   function $(sel) { return document.querySelector(sel); }
   function escapeHtml(str) {
@@ -38,6 +38,26 @@
       }
     }
     return 'user';
+  }
+
+  function normalizeSocketPath(p) {
+    var v = String(p || '').trim();
+    if (!v) return '';
+    if (v.charAt(0) !== '/') v = '/' + v;
+    return v.replace(/\/$/, '');
+  }
+
+  function buildSocketIoPaths() {
+    var out = [];
+    function add(v) {
+      var n = normalizeSocketPath(v);
+      if (!n) return;
+      if (out.indexOf(n) === -1) out.push(n);
+    }
+    add(config.socketIoPath);
+    add(basePath + '/socket.io');
+    add('/socket.io');
+    return out;
   }
 
   function injectCss() {
@@ -121,18 +141,61 @@
 
   function initSocket() {
     if (socket) return;
-    var s = document.createElement('script');
-    s.src = socketIoPath + '/socket.io.js';
-    s.onload = function() {
-      // Always use root namespace and explicit path so chat works behind subpath proxies (e.g. /chat).
-      socket = window.io('/', { path: socketIoPath });
+    function bindSocket(s) {
+      socket = s;
       socket.emit('chat:join', String(roomId));
       socket.on('chat:new', function(msg) {
         if (String(msg.room_id) !== String(roomId)) return;
         appendMessage(msg);
       });
-    };
-    document.body.appendChild(s);
+    }
+
+    function connectWithFallback(pathIndex) {
+      if (socket || pathIndex >= socketIoPaths.length || !window.io) return;
+      var tryPath = socketIoPaths[pathIndex];
+      var candidate = window.io('/', {
+        path: tryPath,
+        transports: ['websocket', 'polling'],
+        reconnection: true
+      });
+
+      var settled = false;
+      candidate.on('connect', function() {
+        if (settled || socket) return;
+        settled = true;
+        bindSocket(candidate);
+      });
+
+      candidate.on('connect_error', function() {
+        if (settled || socket) return;
+        settled = true;
+        try { candidate.close(); } catch (e) {}
+        connectWithFallback(pathIndex + 1);
+      });
+    }
+
+    function loadSocketScriptWithFallback(pathIndex) {
+      if (window.io) {
+        connectWithFallback(0);
+        return;
+      }
+
+      if (pathIndex >= socketIoPaths.length) {
+        var cdn = document.createElement('script');
+        cdn.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
+        cdn.onload = function() { connectWithFallback(0); };
+        document.body.appendChild(cdn);
+        return;
+      }
+
+      var s = document.createElement('script');
+      s.src = socketIoPaths[pathIndex] + '/socket.io.js';
+      s.onload = function() { connectWithFallback(0); };
+      s.onerror = function() { loadSocketScriptWithFallback(pathIndex + 1); };
+      document.body.appendChild(s);
+    }
+
+    loadSocketScriptWithFallback(0);
   }
 
   function toDateKey(d) {
